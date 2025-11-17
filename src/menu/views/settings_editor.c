@@ -166,8 +166,45 @@ static component_context_menu_t options_context_menu = { .list = {
 }};
 
 
+static void update_submenu_selection (menu_t *menu, component_context_menu_t *cm) {
+    // Check if a submenu was just opened and update its row_selected based on current settings
+    if (cm->submenu != NULL) {
+        if (cm->submenu == &set_protected_entries_type_context_menu) {
+            cm->submenu->row_selected = menu->settings.show_protected_entries ? 0 : 1;
+        } else if (cm->submenu == &set_soundfx_enabled_type_context_menu) {
+            cm->submenu->row_selected = menu->settings.soundfx_enabled ? 0 : 1;
+        } else if (cm->submenu == &set_use_saves_folder_type_context_menu) {
+            cm->submenu->row_selected = menu->settings.use_saves_folder ? 0 : 1;
+        } else if (cm->submenu == &set_show_saves_folder_type_context_menu) {
+            cm->submenu->row_selected = menu->settings.show_saves_folder ? 0 : 1;
+        }
+#ifdef FEATURE_AUTOLOAD_ROM_ENABLED
+        else if (cm->submenu == &set_loading_progress_bar_enabled_context_menu) {
+            cm->submenu->row_selected = menu->settings.loading_progress_bar_enabled ? 0 : 1;
+        }
+#else
+        else if (cm->submenu == &set_use_rom_fast_reboot_context_menu) {
+            cm->submenu->row_selected = menu->settings.rom_fast_reboot_enabled ? 0 : 1;
+        }
+#endif
+#ifdef BETA_SETTINGS
+        else if (cm->submenu == &set_pal60_type_context_menu) {
+            cm->submenu->row_selected = menu->settings.pal60_enabled ? 0 : 1;
+        } else if (cm->submenu == &set_pal60_mod_compatibility_type_context_menu) {
+            cm->submenu->row_selected = menu->settings.pal60_compatibility_mode ? 0 : 1;
+        } else if (cm->submenu == &set_bgm_enabled_type_context_menu) {
+            cm->submenu->row_selected = menu->settings.bgm_enabled ? 0 : 1;
+        } else if (cm->submenu == &set_rumble_enabled_type_context_menu) {
+            cm->submenu->row_selected = menu->settings.rumble_enabled ? 0 : 1;
+        }
+#endif
+    }
+}
+
 static void process (menu_t *menu) {
     if (ui_components_context_menu_process(menu, &options_context_menu)) {
+        // After processing, update submenu selection to match current settings
+        update_submenu_selection(menu, &options_context_menu);
         return;
     }
 

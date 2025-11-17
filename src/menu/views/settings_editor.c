@@ -166,38 +166,54 @@ static component_context_menu_t options_context_menu = { .list = {
 }};
 
 
+static void *get_current_value (menu_t *menu, component_context_menu_t *submenu) {
+    // Return the current setting value as a void pointer for comparison with menu item args
+    if (submenu == &set_protected_entries_type_context_menu) {
+        return (void *)(uintptr_t)(menu->settings.show_protected_entries);
+    } else if (submenu == &set_soundfx_enabled_type_context_menu) {
+        return (void *)(uintptr_t)(menu->settings.soundfx_enabled);
+    } else if (submenu == &set_use_saves_folder_type_context_menu) {
+        return (void *)(uintptr_t)(menu->settings.use_saves_folder);
+    } else if (submenu == &set_show_saves_folder_type_context_menu) {
+        return (void *)(uintptr_t)(menu->settings.show_saves_folder);
+    }
+#ifdef FEATURE_AUTOLOAD_ROM_ENABLED
+    else if (submenu == &set_loading_progress_bar_enabled_context_menu) {
+        return (void *)(uintptr_t)(menu->settings.loading_progress_bar_enabled);
+    }
+#else
+    else if (submenu == &set_use_rom_fast_reboot_context_menu) {
+        return (void *)(uintptr_t)(menu->settings.rom_fast_reboot_enabled);
+    }
+#endif
+#ifdef BETA_SETTINGS
+    else if (submenu == &set_pal60_type_context_menu) {
+        return (void *)(uintptr_t)(menu->settings.pal60_enabled);
+    } else if (submenu == &set_pal60_mod_compatibility_type_context_menu) {
+        return (void *)(uintptr_t)(menu->settings.pal60_compatibility_mode);
+    } else if (submenu == &set_bgm_enabled_type_context_menu) {
+        return (void *)(uintptr_t)(menu->settings.bgm_enabled);
+    } else if (submenu == &set_rumble_enabled_type_context_menu) {
+        return (void *)(uintptr_t)(menu->settings.rumble_enabled);
+    }
+#endif
+    return NULL;
+}
+
 static void update_submenu_selection (menu_t *menu, component_context_menu_t *cm) {
     // Check if a submenu was just opened and update its row_selected based on current settings
     if (cm->submenu != NULL) {
-        if (cm->submenu == &set_protected_entries_type_context_menu) {
-            cm->submenu->row_selected = menu->settings.show_protected_entries ? 0 : 1;
-        } else if (cm->submenu == &set_soundfx_enabled_type_context_menu) {
-            cm->submenu->row_selected = menu->settings.soundfx_enabled ? 0 : 1;
-        } else if (cm->submenu == &set_use_saves_folder_type_context_menu) {
-            cm->submenu->row_selected = menu->settings.use_saves_folder ? 0 : 1;
-        } else if (cm->submenu == &set_show_saves_folder_type_context_menu) {
-            cm->submenu->row_selected = menu->settings.show_saves_folder ? 0 : 1;
+        void *current_value = get_current_value(menu, cm->submenu);
+        
+        if (current_value != NULL) {
+            // Search through the submenu items to find which one matches the current value
+            for (int i = 0; i < cm->submenu->row_count; i++) {
+                if (cm->submenu->list[i].arg == current_value) {
+                    cm->submenu->row_selected = i;
+                    break;
+                }
+            }
         }
-#ifdef FEATURE_AUTOLOAD_ROM_ENABLED
-        else if (cm->submenu == &set_loading_progress_bar_enabled_context_menu) {
-            cm->submenu->row_selected = menu->settings.loading_progress_bar_enabled ? 0 : 1;
-        }
-#else
-        else if (cm->submenu == &set_use_rom_fast_reboot_context_menu) {
-            cm->submenu->row_selected = menu->settings.rom_fast_reboot_enabled ? 0 : 1;
-        }
-#endif
-#ifdef BETA_SETTINGS
-        else if (cm->submenu == &set_pal60_type_context_menu) {
-            cm->submenu->row_selected = menu->settings.pal60_enabled ? 0 : 1;
-        } else if (cm->submenu == &set_pal60_mod_compatibility_type_context_menu) {
-            cm->submenu->row_selected = menu->settings.pal60_compatibility_mode ? 0 : 1;
-        } else if (cm->submenu == &set_bgm_enabled_type_context_menu) {
-            cm->submenu->row_selected = menu->settings.bgm_enabled ? 0 : 1;
-        } else if (cm->submenu == &set_rumble_enabled_type_context_menu) {
-            cm->submenu->row_selected = menu->settings.rumble_enabled ? 0 : 1;
-        }
-#endif
     }
 }
 

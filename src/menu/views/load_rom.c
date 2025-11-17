@@ -393,8 +393,46 @@ static component_context_menu_t options_context_menu = { .list = {
     COMPONENT_CONTEXT_MENU_LIST_END,
 }};
 
+static void *get_current_value (menu_t *menu, component_context_menu_t *submenu) {
+    // Return the current ROM config value as a void pointer for comparison with menu item args
+    if (submenu == &set_cic_type_context_menu) {
+        return (void *)(uintptr_t)(rom_info_get_cic_type(&menu->load.rom_info));
+    } else if (submenu == &set_save_type_context_menu) {
+        return (void *)(uintptr_t)(rom_info_get_save_type(&menu->load.rom_info));
+    } else if (submenu == &set_tv_type_context_menu) {
+        return (void *)(uintptr_t)(rom_info_get_tv_type(&menu->load.rom_info));
+    } else if (submenu == &set_cheat_options_menu) {
+        return (void *)(uintptr_t)(menu->load.rom_info.settings.cheats_enabled);
+    }
+#ifdef FEATURE_PATCHER_GUI_ENABLED
+    else if (submenu == &set_patcher_options_menu) {
+        return (void *)(uintptr_t)(menu->load.rom_info.settings.patches_enabled);
+    }
+#endif
+    return NULL;
+}
+
+static void update_submenu_selection (menu_t *menu, component_context_menu_t *cm) {
+    // Check if a submenu was just opened and update its row_selected based on current ROM config
+    if (cm->submenu != NULL) {
+        void *current_value = get_current_value(menu, cm->submenu);
+        
+        if (current_value != NULL) {
+            // Search through the submenu items to find which one matches the current value
+            for (int i = 0; i < cm->submenu->row_count; i++) {
+                if (cm->submenu->list[i].arg == current_value) {
+                    cm->submenu->row_selected = i;
+                    break;
+                }
+            }
+        }
+    }
+}
+
 static void process (menu_t *menu) {
     if (ui_components_context_menu_process(menu, &options_context_menu)) {
+        // After processing, update submenu selection to match current ROM config
+        update_submenu_selection(menu, &options_context_menu);
         return;
     }
 

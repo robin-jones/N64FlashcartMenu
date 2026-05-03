@@ -156,9 +156,22 @@ static void command_receive_file (menu_t *menu) {
     }
 }
 
+/**
+ * @brief Receive a file over USB, save it to storage, and then reboot.
+ *
+ * @param menu Pointer to the menu structure.
+ */
+static void command_receive_file_reboot (menu_t *menu) {
+    command_receive_file(menu);
+
+    // Reboot through the same code path as the explicit reboot command.
+    command_reboot(menu);
+}
+
 static usb_comm_command_t commands[] = {
     { .id = "reboot", .op = command_reboot },
     { .id = "send-file", .op = command_receive_file }, // Note that this is a crossover with the `id` related to the PC commands.
+    { .id = "send-file-reboot", .op = command_receive_file_reboot },
     { .id = NULL },
 };
 
